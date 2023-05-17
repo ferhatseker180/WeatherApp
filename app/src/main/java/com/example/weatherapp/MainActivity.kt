@@ -20,6 +20,8 @@ import android.util.Log
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.core.app.ActivityCompat
+import com.example.weatherapp.models.weatherResponse
+import com.example.weatherapp.network.weatherService
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationCallback
 import com.google.android.gms.location.LocationResult
@@ -29,6 +31,9 @@ import com.karumi.dexter.MultiplePermissionsReport
 import com.karumi.dexter.PermissionToken
 import com.karumi.dexter.listener.PermissionRequest
 import com.karumi.dexter.listener.multi.MultiplePermissionsListener
+import retrofit2.Call
+import retrofit2.Callback
+import retrofit2.Response
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 import java.net.HttpURLConnection
@@ -37,8 +42,7 @@ import java.net.URL
 class MainActivity : AppCompatActivity() {
 
     private lateinit var mFusedLocationClient: FusedLocationProviderClient
-
-
+    private var mProgressDialog : Dialog? = null
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
@@ -94,17 +98,58 @@ class MainActivity : AppCompatActivity() {
             Log.i("Current Latitude","$latitude")
             val longitude = mLastLocation?.longitude
             Log.i("Current Longitude","$longitude")
-            getLocationWeatherDetails()
+            if (latitude != null && longitude != null) {
+                getLocationWeatherDetails(latitude!!,longitude!!)
+            }
 
         }
     }
 
-    private fun getLocationWeatherDetails() {
+    private fun getLocationWeatherDetails(latitude : Double, longitude : Double) {
         if (Constants.isNetworkAvailable(this@MainActivity)) {
 
             val retrofit : Retrofit = Retrofit.Builder()
                 .baseUrl(Constants.BASE_URL)
                 .addConverterFactory(GsonConverterFactory.create()).build()
+
+            val service: weatherService =
+                retrofit.create<weatherService>(weatherService::class.java)
+
+            val listCall: Call<weatherResponse> = service.getWeather(
+                latitude, longitude, Constants.METRIC_UNIT, Constants.APP_ID
+            )
+
+            showCustomProgressDialog()
+
+            listCall.enqueue(object : Callback<weatherResponse>{
+                override fun onResponse(call: Call<weatherResponse>, response: Response<weatherResponse>) {
+
+                    if (response.isSuccessful) {
+                        val weatherList : weatherResponse? = response.body()
+                        Log.i("Response Result","$weatherList")
+                    }
+                    else {
+                        val rc = response.code()
+                        when(rc) {
+                            400 -> {
+                                Log.e("Error 400","Bad Connecting")
+                            }
+                            404 -> {
+                                Log.e("Error 404","Not Found")
+                            }
+                            else -> {
+                                Log.e("Error","Generic Error")
+                            }
+                        }
+                    }
+
+                }
+
+                override fun onFailure(call: Call<weatherResponse>, t: Throwable) {
+                    Log.e("Error Error",t.message.toString())
+                }
+
+            })
 
         } else {
             Toast.makeText(this@MainActivity,"No Internet Connection Avaliable",Toast.LENGTH_SHORT).show()
@@ -156,5 +201,19 @@ class MainActivity : AppCompatActivity() {
                 dialog.dismiss()
             }.show()
     }
+
+    private fun showCustomProgressDialog() {
+        mProgressDialog = Dialog(this)
+        mProgressDialog!!.setContentView(R.layout.custom_progress_dialog)
+
+        mProgressDialog!!.show()
+    }
+
+    private fun hideProgressDialog() {
+        if (mProgressDialog != null) {
+            mProgressDialog!!.dismiss()
+        }
+    }
+
 
 }
