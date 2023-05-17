@@ -125,6 +125,9 @@ class MainActivity : AppCompatActivity() {
                 override fun onResponse(call: Call<weatherResponse>, response: Response<weatherResponse>) {
 
                     if (response.isSuccessful) {
+
+                        hideProgressDialog()
+
                         val weatherList : weatherResponse? = response.body()
                         Log.i("Response Result","$weatherList")
                     }
@@ -146,6 +149,7 @@ class MainActivity : AppCompatActivity() {
                 }
 
                 override fun onFailure(call: Call<weatherResponse>, t: Throwable) {
+                    hideProgressDialog()
                     Log.e("Error Error",t.message.toString())
                 }
 
