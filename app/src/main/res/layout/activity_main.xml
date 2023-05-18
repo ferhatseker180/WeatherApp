@@ -46,7 +46,7 @@
                     android:orientation="vertical">
 
                     <TextView
-                        android:id="@+id/tv_main"
+                        android:id="@+id/textView_main"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:gravity="end"
@@ -98,7 +98,7 @@
                     android:orientation="vertical">
 
                     <TextView
-                        android:id="@+id/tv_temp"
+                        android:id="@+id/textView_temp"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:gravity="end"
@@ -158,12 +158,12 @@
                     android:orientation="vertical">
 
                     <TextView
-                        android:id="@+id/tv_min"
+                        android:id="@+id/textView_min"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:gravity="end"
                         android:textColor="@color/primary_text_color"
-                        android:textSize="@dimen/label_text_size"
+                        android:textSize="14sp"
                         android:textStyle="bold"
                         tools:text="Minimum" />
 
@@ -210,7 +210,7 @@
                     android:orientation="vertical">
 
                     <TextView
-                        android:id="@+id/tv_speed"
+                        android:id="@+id/textView_speed"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:gravity="end"
@@ -268,7 +268,7 @@
                     android:orientation="vertical">
 
                     <TextView
-                        android:id="@+id/tv_name"
+                        android:id="@+id/textView_name"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:gravity="end"

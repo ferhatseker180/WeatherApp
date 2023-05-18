@@ -17,6 +17,7 @@ import android.os.Bundle
 import android.os.Looper
 import android.provider.Settings
 import android.util.Log
+import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.core.app.ActivityCompat
@@ -38,6 +39,8 @@ import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 import java.net.HttpURLConnection
 import java.net.URL
+import java.text.SimpleDateFormat
+import java.util.*
 
 class MainActivity : AppCompatActivity() {
 
@@ -129,6 +132,7 @@ class MainActivity : AppCompatActivity() {
                         hideProgressDialog()
 
                         val weatherList : weatherResponse? = response.body()
+                        setupUI(weatherList!!)
                         Log.i("Response Result","$weatherList")
                     }
                     else {
@@ -219,5 +223,70 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    private fun setupUI(weatherList : weatherResponse) {
+
+        for (i in weatherList.weather.indices) {
+            Log.i("Weather Name","${weatherList.weather.toString()}")
+
+            val textViewMain = findViewById<TextView>(R.id.textView_main)
+            textViewMain.text = weatherList.weather[i].main
+
+            val tv_main_description = findViewById<TextView>(R.id.tv_main_description)
+            tv_main_description.text = weatherList.weather[i].description
+
+            val textViewTemp = findViewById<TextView>(R.id.textView_temp)
+            textViewTemp.text = weatherList.main.temp.toString() + getUnit(application.resources.configuration.toString())
+
+            val tv_humidity = findViewById<TextView>(R.id.tv_humidity)
+            tv_humidity.text = weatherList.main.humidity.toString() + " per cent"
+
+
+            val textView_min = findViewById<TextView>(R.id.textView_min)
+            textView_min.text = weatherList.main.temp_min.toString() + getUnit(application.resources.configuration.toString()) +" min"
+
+            val tv_max = findViewById<TextView>(R.id.tv_max)
+            tv_max.text = weatherList.main.temp_max.toString() +  getUnit(application.resources.configuration.toString()) + " max"
+
+            val textView_speed = findViewById<TextView>(R.id.textView_speed)
+            textView_speed.text = weatherList.wind.speed.toString()
+
+            val tv_speed_unit = findViewById<TextView>(R.id.tv_speed_unit)
+
+            val textView_name = findViewById<TextView>(R.id.textView_name)
+            textView_name.text = weatherList.name
+
+            val tv_country = findViewById<TextView>(R.id.tv_country)
+            tv_country.text = weatherList.sys.country
+
+
+
+            val tv_sunrise_time = findViewById<TextView>(R.id.tv_sunrise_time)
+            tv_sunrise_time.text = unixTime(weatherList.sys.sunrise)
+
+            val tv_sunset_time = findViewById<TextView>(R.id.tv_sunset_time)
+            tv_sunset_time.text = unixTime(weatherList.sys.sunset)
+
+            when(weatherList.weather[i].icon) {
+
+            }
+
+        }
+    }
+
+    private fun getUnit(value : String) : String? {
+
+        var value = "°C"
+        if ("US" == value || "LR" == value || "MM" == value) {
+            value = "°F"
+        }
+        return value
+    }
+
+    private fun unixTime(timex: Long) : String? {
+        val date = Date(timex * 1000L)
+        val sdf = SimpleDateFormat("HH:mm")
+        sdf.timeZone = TimeZone.getDefault()
+        return sdf.format(date)
+    }
 
 }
