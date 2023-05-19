@@ -6,6 +6,7 @@ import android.app.Dialog
 import android.content.ActivityNotFoundException
 import android.content.Context
 import android.content.Intent
+import android.content.SharedPreferences
 import android.content.pm.PackageManager
 import android.location.Location
 import android.location.LocationManager
@@ -30,6 +31,7 @@ import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationCallback
 import com.google.android.gms.location.LocationResult
 import com.google.android.gms.location.LocationServices
+import com.google.gson.Gson
 import com.karumi.dexter.Dexter
 import com.karumi.dexter.MultiplePermissionsReport
 import com.karumi.dexter.PermissionToken
@@ -49,11 +51,16 @@ class MainActivity : AppCompatActivity() {
 
     private lateinit var mFusedLocationClient: FusedLocationProviderClient
     private var mProgressDialog : Dialog? = null
+    private lateinit var mSharedPreferences : SharedPreferences
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
         mFusedLocationClient = LocationServices.getFusedLocationProviderClient(this@MainActivity)
+
+        mSharedPreferences = getSharedPreferences(Constants.PREFERENCE_NAME,Context.MODE_PRIVATE)
+
+        setupUI()
 
         if (!isLocationEnabled()) {
             Toast.makeText(this@MainActivity, "Your Location Provider Is Turned OFF. Please Turn It", Toast.LENGTH_LONG).
@@ -104,9 +111,9 @@ class MainActivity : AppCompatActivity() {
             Log.i("Current Latitude","$latitude")
             val longitude = mLastLocation?.longitude
             Log.i("Current Longitude","$longitude")
-            if (latitude != null && longitude != null) {
-                getLocationWeatherDetails(latitude!!,longitude!!)
-            }
+
+            getLocationWeatherDetails(latitude!!,longitude!!)
+
 
         }
     }
@@ -135,7 +142,14 @@ class MainActivity : AppCompatActivity() {
                         hideProgressDialog()
 
                         val weatherList : weatherResponse? = response.body()
-                        setupUI(weatherList!!)
+
+                        val weatherResponseJsonString = Gson().toJson(weatherList)
+                        val editor = mSharedPreferences.edit()
+                        editor.putString(Constants.WEATHER_RESPONSE_DATA,weatherResponseJsonString)
+                        editor.apply()
+
+                        setupUI()
+
                         Log.i("Response Result","$weatherList")
                     }
                     else {
@@ -226,72 +240,81 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    private fun setupUI(weatherList : weatherResponse) {
+    private fun setupUI() {
 
-        for (i in weatherList.weather.indices) {
-            Log.i("Weather Name","${weatherList.weather.toString()}")
+        val weatherResponseJsonString = mSharedPreferences.getString(Constants.WEATHER_RESPONSE_DATA,"")
 
-            val textViewMain = findViewById<TextView>(R.id.textView_main)
-            textViewMain.text = weatherList.weather[i].main
+        if (!weatherResponseJsonString.isNullOrEmpty()) {
+            val weatherList = Gson().fromJson(weatherResponseJsonString,weatherResponse::class.java)
 
-            val tv_main_description = findViewById<TextView>(R.id.tv_main_description)
-            tv_main_description.text = weatherList.weather[i].description
+            for (i in weatherList.weather.indices) {
+                Log.i("Weather Name","${weatherList.weather.toString()}")
 
-            val textViewTemp = findViewById<TextView>(R.id.textView_temp)
-            textViewTemp.text = weatherList.main.temp.toString() + getUnit(application.resources.configuration.toString())
+                val textViewMain = findViewById<TextView>(R.id.textView_main)
+                textViewMain.text = weatherList.weather[i].main
 
-            val tv_humidity = findViewById<TextView>(R.id.tv_humidity)
-            tv_humidity.text = weatherList.main.humidity.toString() + " per cent"
+                val tv_main_description = findViewById<TextView>(R.id.tv_main_description)
+                tv_main_description.text = weatherList.weather[i].description
 
+                val textViewTemp = findViewById<TextView>(R.id.textView_temp)
+                textViewTemp.text = weatherList.main.temp.toString() + getUnit(application.resources.configuration.toString())
 
-            val textView_min = findViewById<TextView>(R.id.textView_min)
-            textView_min.text = weatherList.main.temp_min.toString() + getUnit(application.resources.configuration.toString()) +" min"
-
-            val tv_max = findViewById<TextView>(R.id.tv_max)
-            tv_max.text = weatherList.main.temp_max.toString() +  getUnit(application.resources.configuration.toString()) + " max"
-
-            val textView_speed = findViewById<TextView>(R.id.textView_speed)
-            textView_speed.text = weatherList.wind.speed.toString()
-
-            val tv_speed_unit = findViewById<TextView>(R.id.tv_speed_unit)
-
-            val textView_name = findViewById<TextView>(R.id.textView_name)
-            textView_name.text = weatherList.name
-
-            val tv_country = findViewById<TextView>(R.id.tv_country)
-            tv_country.text = weatherList.sys.country
+                val tv_humidity = findViewById<TextView>(R.id.tv_humidity)
+                tv_humidity.text = weatherList.main.humidity.toString() + " per cent"
 
 
+                val textView_min = findViewById<TextView>(R.id.textView_min)
+                textView_min.text = weatherList.main.temp_min.toString() + getUnit(application.resources.configuration.toString()) +" min"
 
-            val tv_sunrise_time = findViewById<TextView>(R.id.tv_sunrise_time)
-            tv_sunrise_time.text = unixTime(weatherList.sys.sunrise)
+                val tv_max = findViewById<TextView>(R.id.tv_max)
+                tv_max.text = weatherList.main.temp_max.toString() +  getUnit(application.resources.configuration.toString()) + " max"
 
-            val tv_sunset_time = findViewById<TextView>(R.id.tv_sunset_time)
-            tv_sunset_time.text = unixTime(weatherList.sys.sunset)
+                val textView_speed = findViewById<TextView>(R.id.textView_speed)
+                textView_speed.text = weatherList.wind.speed.toString()
+
+                val tv_speed_unit = findViewById<TextView>(R.id.tv_speed_unit)
+
+                val textView_name = findViewById<TextView>(R.id.textView_name)
+                textView_name.text = weatherList.name
+
+                val tv_country = findViewById<TextView>(R.id.tv_country)
+                tv_country.text = weatherList.sys.country
 
 
-            val iv_main = findViewById<ImageView>(R.id.iv_main)
 
-            when(weatherList.weather[i].icon) {
-                "01d" -> iv_main.setImageResource(R.drawable.sunny)
-                "02d" -> iv_main.setImageResource(R.drawable.cloud)
-                "03d" -> iv_main.setImageResource(R.drawable.cloud)
-                "04d" -> iv_main.setImageResource(R.drawable.cloud)
-                "04n" -> iv_main.setImageResource(R.drawable.sunny)
-                "10d" -> iv_main.setImageResource(R.drawable.rain)
-                "11d" -> iv_main.setImageResource(R.drawable.storm)
-                "13d" -> iv_main.setImageResource(R.drawable.snowflake)
-                "01n" -> iv_main.setImageResource(R.drawable.sunny)
-                "02n" -> iv_main.setImageResource(R.drawable.cloud)
-                "03n" -> iv_main.setImageResource(R.drawable.cloud)
-                "10n" -> iv_main.setImageResource(R.drawable.cloud)
-                "11n" -> iv_main.setImageResource(R.drawable.rain)
-                "13n" -> iv_main.setImageResource(R.drawable.snowflake)
+                val tv_sunrise_time = findViewById<TextView>(R.id.tv_sunrise_time)
+                tv_sunrise_time.text = unixTime(weatherList.sys.sunrise)
 
+                val tv_sunset_time = findViewById<TextView>(R.id.tv_sunset_time)
+                tv_sunset_time.text = unixTime(weatherList.sys.sunset)
+
+
+                val iv_main = findViewById<ImageView>(R.id.iv_main)
+
+                when(weatherList.weather[i].icon) {
+                    "01d" -> iv_main.setImageResource(R.drawable.sunny)
+                    "02d" -> iv_main.setImageResource(R.drawable.cloud)
+                    "03d" -> iv_main.setImageResource(R.drawable.cloud)
+                    "04d" -> iv_main.setImageResource(R.drawable.cloud)
+                    "04n" -> iv_main.setImageResource(R.drawable.sunny)
+                    "10d" -> iv_main.setImageResource(R.drawable.rain)
+                    "11d" -> iv_main.setImageResource(R.drawable.storm)
+                    "13d" -> iv_main.setImageResource(R.drawable.snowflake)
+                    "01n" -> iv_main.setImageResource(R.drawable.sunny)
+                    "02n" -> iv_main.setImageResource(R.drawable.cloud)
+                    "03n" -> iv_main.setImageResource(R.drawable.cloud)
+                    "10n" -> iv_main.setImageResource(R.drawable.cloud)
+                    "11n" -> iv_main.setImageResource(R.drawable.rain)
+                    "13n" -> iv_main.setImageResource(R.drawable.snowflake)
+
+                }
             }
 
-
         }
+
+
+
+
     }
 
     private fun getUnit(value : String) : String? {
@@ -324,5 +347,7 @@ class MainActivity : AppCompatActivity() {
         }
 
     }
+
+
 
 }
