@@ -27,6 +27,7 @@ import androidx.appcompat.app.AlertDialog
 import androidx.core.app.ActivityCompat
 import com.example.weatherapp.databinding.ActivityMainBinding
 import com.example.weatherapp.models.weatherResponse
+import com.example.weatherapp.myFuns.convertFun
 import com.example.weatherapp.network.weatherService
 import com.example.weatherapp.utils.Constants
 import com.google.android.gms.location.FusedLocationProviderClient
@@ -55,6 +56,9 @@ class MainActivity : AppCompatActivity() {
     private lateinit var mFusedLocationClient: FusedLocationProviderClient
     private var mProgressDialog : Dialog? = null
     private lateinit var mSharedPreferences : SharedPreferences
+
+    private var unit : convertFun = convertFun()
+    private var unix : convertFun = convertFun()
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         tasarim = ActivityMainBinding.inflate(layoutInflater)
@@ -255,13 +259,13 @@ class MainActivity : AppCompatActivity() {
 
                 tasarim.tvMainDescription.text = weatherList.weather[i].description
 
-                tasarim.textViewTemp.text = weatherList.main.temp.toString() + getUnit(application.resources.configuration.toString())
+                tasarim.textViewTemp.text = weatherList.main.temp.toString() + unit.getUnit(application.resources.configuration.toString())
 
                 tasarim.tvHumidity.text = weatherList.main.humidity.toString() + " per cent"
 
-                tasarim.textViewMin.text = weatherList.main.temp_min.toString() + getUnit(application.resources.configuration.toString()) +" min"
+                tasarim.textViewMin.text = weatherList.main.temp_min.toString() + unit.getUnit(application.resources.configuration.toString()) +" min"
 
-                tasarim.tvMax.text = weatherList.main.temp_max.toString() +  getUnit(application.resources.configuration.toString()) + " max"
+                tasarim.tvMax.text = weatherList.main.temp_max.toString() +  unit.getUnit(application.resources.configuration.toString()) + " max"
 
                 tasarim.textViewSpeed.text = weatherList.wind.speed.toString()
 
@@ -269,9 +273,9 @@ class MainActivity : AppCompatActivity() {
 
                 tasarim.tvCountry.text = weatherList.sys.country
 
-                tasarim.tvSunriseTime.text = unixTime(weatherList.sys.sunrise)
+                tasarim.tvSunriseTime.text = unix.unixTime(weatherList.sys.sunrise)
 
-                tasarim.tvSunsetTime.text = unixTime(weatherList.sys.sunset)
+                tasarim.tvSunsetTime.text = unix.unixTime(weatherList.sys.sunset)
 
 
                 when(weatherList.weather[i].icon) {
@@ -297,21 +301,6 @@ class MainActivity : AppCompatActivity() {
 
     }
 
-    private fun getUnit(value : String) : String? {
-
-        var value = "°C"
-        if ("US" == value || "LR" == value || "MM" == value) {
-            value = "°F"
-        }
-        return value
-    }
-
-    private fun unixTime(timex: Long) : String? {
-        val date = Date(timex * 1000L)
-        val sdf = SimpleDateFormat("HH:mm")
-        sdf.timeZone = TimeZone.getDefault()
-        return sdf.format(date)
-    }
 
     override fun onCreateOptionsMenu(menu: Menu?): Boolean {
         menuInflater.inflate(R.menu.main_menu,menu)
