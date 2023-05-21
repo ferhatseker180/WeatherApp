@@ -67,7 +67,30 @@ class MainActivity : AppCompatActivity() {
             show()
             val intent = startActivity(Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS))
         } else {
-            dexterValidatePermission()
+            Dexter.withActivity(this@MainActivity).withPermissions(android.Manifest.permission.ACCESS_COARSE_LOCATION,
+                android.Manifest.permission.ACCESS_FINE_LOCATION).withListener(object : MultiplePermissionsListener {
+                override fun onPermissionsChecked(report: MultiplePermissionsReport?) {
+                    if (report!!.areAllPermissionsGranted()) {
+
+                        requestLocationData()
+                    }
+
+                    if (report.isAnyPermissionPermanentlyDenied) {
+                        Toast.makeText(this@MainActivity,
+                            "You Have Denied Location Permission. Please Enable Them As It Mandatory For The App To Work.",
+                            Toast.LENGTH_LONG).show()
+                    }
+                }
+
+                override fun onPermissionRationaleShouldBeShown(
+                    permissions: MutableList<PermissionRequest>?,
+                    token: PermissionToken?
+                ) {
+                    showRationalDialogForPermission()
+                }
+
+            }).onSameThread()
+                .check()
         }
 
 
@@ -181,32 +204,6 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    private fun dexterValidatePermission() {
-        Dexter.withActivity(this@MainActivity).withPermissions(android.Manifest.permission.ACCESS_COARSE_LOCATION,
-        android.Manifest.permission.ACCESS_FINE_LOCATION).withListener(object : MultiplePermissionsListener {
-            override fun onPermissionsChecked(report: MultiplePermissionsReport?) {
-                if (report!!.areAllPermissionsGranted()) {
-
-                    requestLocationData()
-                }
-
-                if (report.isAnyPermissionPermanentlyDenied) {
-                    Toast.makeText(this@MainActivity,
-                        "You Have Denied Location Permission. Please Enable Them As It Mandatory For The App To Work.",
-                        Toast.LENGTH_LONG).show()
-                }
-            }
-
-            override fun onPermissionRationaleShouldBeShown(
-                permissions: MutableList<PermissionRequest>?,
-                token: PermissionToken?
-            ) {
-                showRationalDialogForPermission()
-            }
-
-        }).onSameThread()
-            .check()
-    }
 
     private fun showRationalDialogForPermission() {
         AlertDialog.Builder(this@MainActivity).setMessage("It Looks Like You Have Turned Off Permissions Required For This Feature. It Can Be Enabled Under Application Settings.")
