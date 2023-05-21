@@ -25,8 +25,10 @@ import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.core.app.ActivityCompat
+import com.example.weatherapp.databinding.ActivityMainBinding
 import com.example.weatherapp.models.weatherResponse
 import com.example.weatherapp.network.weatherService
+import com.example.weatherapp.utils.Constants
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationCallback
 import com.google.android.gms.location.LocationResult
@@ -48,13 +50,15 @@ import java.text.SimpleDateFormat
 import java.util.*
 
 class MainActivity : AppCompatActivity() {
+    private lateinit var tasarim : ActivityMainBinding
 
     private lateinit var mFusedLocationClient: FusedLocationProviderClient
     private var mProgressDialog : Dialog? = null
     private lateinit var mSharedPreferences : SharedPreferences
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_main)
+        tasarim = ActivityMainBinding.inflate(layoutInflater)
+        setContentView(tasarim.root)
 
         mFusedLocationClient = LocationServices.getFusedLocationProviderClient(this@MainActivity)
 
@@ -247,70 +251,49 @@ class MainActivity : AppCompatActivity() {
             for (i in weatherList.weather.indices) {
                 Log.i("Weather Name","${weatherList.weather.toString()}")
 
-                val textViewMain = findViewById<TextView>(R.id.textView_main)
-                textViewMain.text = weatherList.weather[i].main
+                tasarim.textViewMain.text = weatherList.weather[i].main
 
-                val tv_main_description = findViewById<TextView>(R.id.tv_main_description)
-                tv_main_description.text = weatherList.weather[i].description
+                tasarim.tvMainDescription.text = weatherList.weather[i].description
 
-                val textViewTemp = findViewById<TextView>(R.id.textView_temp)
-                textViewTemp.text = weatherList.main.temp.toString() + getUnit(application.resources.configuration.toString())
+                tasarim.textViewTemp.text = weatherList.main.temp.toString() + getUnit(application.resources.configuration.toString())
 
-                val tv_humidity = findViewById<TextView>(R.id.tv_humidity)
-                tv_humidity.text = weatherList.main.humidity.toString() + " per cent"
+                tasarim.tvHumidity.text = weatherList.main.humidity.toString() + " per cent"
 
+                tasarim.textViewMin.text = weatherList.main.temp_min.toString() + getUnit(application.resources.configuration.toString()) +" min"
 
-                val textView_min = findViewById<TextView>(R.id.textView_min)
-                textView_min.text = weatherList.main.temp_min.toString() + getUnit(application.resources.configuration.toString()) +" min"
+                tasarim.tvMax.text = weatherList.main.temp_max.toString() +  getUnit(application.resources.configuration.toString()) + " max"
 
-                val tv_max = findViewById<TextView>(R.id.tv_max)
-                tv_max.text = weatherList.main.temp_max.toString() +  getUnit(application.resources.configuration.toString()) + " max"
+                tasarim.textViewSpeed.text = weatherList.wind.speed.toString()
 
-                val textView_speed = findViewById<TextView>(R.id.textView_speed)
-                textView_speed.text = weatherList.wind.speed.toString()
+                tasarim.textViewName.text = weatherList.name
 
-                val tv_speed_unit = findViewById<TextView>(R.id.tv_speed_unit)
+                tasarim.tvCountry.text = weatherList.sys.country
 
-                val textView_name = findViewById<TextView>(R.id.textView_name)
-                textView_name.text = weatherList.name
+                tasarim.tvSunriseTime.text = unixTime(weatherList.sys.sunrise)
 
-                val tv_country = findViewById<TextView>(R.id.tv_country)
-                tv_country.text = weatherList.sys.country
+                tasarim.tvSunsetTime.text = unixTime(weatherList.sys.sunset)
 
-
-
-                val tv_sunrise_time = findViewById<TextView>(R.id.tv_sunrise_time)
-                tv_sunrise_time.text = unixTime(weatherList.sys.sunrise)
-
-                val tv_sunset_time = findViewById<TextView>(R.id.tv_sunset_time)
-                tv_sunset_time.text = unixTime(weatherList.sys.sunset)
-
-
-                val iv_main = findViewById<ImageView>(R.id.iv_main)
 
                 when(weatherList.weather[i].icon) {
-                    "01d" -> iv_main.setImageResource(R.drawable.sunny)
-                    "02d" -> iv_main.setImageResource(R.drawable.cloud)
-                    "03d" -> iv_main.setImageResource(R.drawable.cloud)
-                    "04d" -> iv_main.setImageResource(R.drawable.cloud)
-                    "04n" -> iv_main.setImageResource(R.drawable.sunny)
-                    "10d" -> iv_main.setImageResource(R.drawable.rain)
-                    "11d" -> iv_main.setImageResource(R.drawable.storm)
-                    "13d" -> iv_main.setImageResource(R.drawable.snowflake)
-                    "01n" -> iv_main.setImageResource(R.drawable.sunny)
-                    "02n" -> iv_main.setImageResource(R.drawable.cloud)
-                    "03n" -> iv_main.setImageResource(R.drawable.cloud)
-                    "10n" -> iv_main.setImageResource(R.drawable.cloud)
-                    "11n" -> iv_main.setImageResource(R.drawable.rain)
-                    "13n" -> iv_main.setImageResource(R.drawable.snowflake)
+                    "01d" -> tasarim.ivMain.setImageResource(R.drawable.sunny)
+                    "02d" -> tasarim.ivMain.setImageResource(R.drawable.cloud)
+                    "03d" -> tasarim.ivMain.setImageResource(R.drawable.cloud)
+                    "04d" -> tasarim.ivMain.setImageResource(R.drawable.cloud)
+                    "04n" -> tasarim.ivMain.setImageResource(R.drawable.sunny)
+                    "10d" -> tasarim.ivMain.setImageResource(R.drawable.rain)
+                    "11d" -> tasarim.ivMain.setImageResource(R.drawable.storm)
+                    "13d" -> tasarim.ivMain.setImageResource(R.drawable.snowflake)
+                    "01n" -> tasarim.ivMain.setImageResource(R.drawable.sunny)
+                    "02n" -> tasarim.ivMain.setImageResource(R.drawable.cloud)
+                    "03n" -> tasarim.ivMain.setImageResource(R.drawable.cloud)
+                    "10n" -> tasarim.ivMain.setImageResource(R.drawable.cloud)
+                    "11n" -> tasarim.ivMain.setImageResource(R.drawable.rain)
+                    "13n" -> tasarim.ivMain.setImageResource(R.drawable.snowflake)
 
                 }
             }
 
         }
-
-
-
 
     }
 
