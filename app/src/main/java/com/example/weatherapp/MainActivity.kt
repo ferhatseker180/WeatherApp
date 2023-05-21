@@ -26,6 +26,7 @@ import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.core.app.ActivityCompat
 import com.example.weatherapp.databinding.ActivityMainBinding
+import com.example.weatherapp.error_messages.errorMessages
 import com.example.weatherapp.models.weatherResponse
 import com.example.weatherapp.myFuns.convertFun
 import com.example.weatherapp.network.weatherService
@@ -59,6 +60,8 @@ class MainActivity : AppCompatActivity() {
 
     private var unit : convertFun = convertFun()
     private var unix : convertFun = convertFun()
+
+    private var error : errorMessages = errorMessages()
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         tasarim = ActivityMainBinding.inflate(layoutInflater)
@@ -71,7 +74,7 @@ class MainActivity : AppCompatActivity() {
         setupUI()
 
         if (!isLocationEnabled()) {
-            Toast.makeText(this@MainActivity, "Your Location Provider Is Turned OFF. Please Turn It", Toast.LENGTH_LONG).
+            Toast.makeText(this@MainActivity, "${error.locationOffMessage.toString()}", Toast.LENGTH_LONG).
             show()
             val intent = startActivity(Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS))
         } else {
@@ -85,7 +88,7 @@ class MainActivity : AppCompatActivity() {
 
                     if (report.isAnyPermissionPermanentlyDenied) {
                         Toast.makeText(this@MainActivity,
-                            "You Have Denied Location Permission. Please Enable Them As It Mandatory For The App To Work.",
+                            "${error.dontAllowPermission.toString()}",
                             Toast.LENGTH_LONG).show()
                     }
                 }
@@ -208,7 +211,7 @@ class MainActivity : AppCompatActivity() {
             })
 
         } else {
-            Toast.makeText(this@MainActivity,"No Internet Connection Avaliable",Toast.LENGTH_SHORT).show()
+            Toast.makeText(this@MainActivity,"${error.internetMessage.toString()}",Toast.LENGTH_SHORT).show()
         }
     }
 
